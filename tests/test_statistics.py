@@ -157,6 +157,30 @@ class StatisticsTrackerTest(unittest.TestCase):
         self.assertEqual(1, len(report["alerts"]))
         self.assertEqual(1, len(report["errors"]))
 
+    def test_export_json_orders_session_by_instant_across_timezone_offsets(self):
+        earlier = "2026-11-23T01:00:00+07:00"
+        later = "2026-11-22T20:00:00+00:00"
+        for timestamp in (later, earlier):
+            self.tracker.record_error(
+                {
+                    "sensor_id": "COLD-01",
+                    "timestamp": timestamp,
+                    "error_type": "PROCESSING_ERROR",
+                    "message": "Loi xu ly",
+                    "details": {},
+                }
+            )
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            target = Path(temp_dir) / "report.json"
+            self.tracker.export_json(str(target))
+            with target.open(encoding="utf-8") as file:
+                report = json.load(file)
+
+        self.assertEqual(
+            {"started_at": earlier, "ended_at": later}, report["session"]
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

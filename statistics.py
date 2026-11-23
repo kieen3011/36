@@ -47,8 +47,8 @@ def _validate_identifier(value, field_name):
         raise ValueError(f"{field_name} must not be blank")
 
 
-def _validate_timestamp(value):
-    """Kiem tra timestamp ISO 8601 co timezone."""
+def _parse_timestamp(value):
+    """Phan tich timestamp ISO 8601 co timezone."""
     if not isinstance(value, str):
         raise TypeError("timestamp must be a string")
     if not value.strip():
@@ -60,6 +60,12 @@ def _validate_timestamp(value):
         raise ValueError("timestamp must be valid ISO 8601") from error
     if parsed.tzinfo is None or parsed.utcoffset() is None:
         raise ValueError("timestamp must include timezone")
+    return parsed
+
+
+def _validate_timestamp(value):
+    """Kiem tra timestamp ISO 8601 co timezone."""
+    _parse_timestamp(value)
 
 
 def _validate_number(value, field_name):
@@ -146,10 +152,12 @@ class StatisticsTracker:
         target.parent.mkdir(parents=True, exist_ok=True)
         timestamps = [item["timestamp"] for item in self._alerts]
         timestamps.extend(item["timestamp"] for item in self._errors)
+        started_at = min(timestamps, key=_parse_timestamp) if timestamps else None
+        ended_at = max(timestamps, key=_parse_timestamp) if timestamps else None
         report = {
             "session": {
-                "started_at": min(timestamps) if timestamps else None,
-                "ended_at": max(timestamps) if timestamps else None,
+                "started_at": started_at,
+                "ended_at": ended_at,
             },
             "summary": self.get_summary(),
             "alerts": deepcopy(self._alerts),
