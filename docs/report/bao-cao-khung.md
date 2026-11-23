@@ -44,7 +44,8 @@ python -m unittest discover -s tests -v
 
 Kết quả tích hợp thực tế do Lead xác minh:
 
-- **59 test đã chạy, 59 test PASS, 0 failure, 0 error**.
+- **64 test đã chạy, 64 test PASS, 0 failure, 0 error**.
+- Có 9 integration tests kiểm tra các luồng kết nối chính.
 - Unit test của năm module PASS.
 - Luồng end-to-end normal/environmental PASS.
 - Luồng DISCONNECT → ERROR → RECOVER PASS.
@@ -52,6 +53,7 @@ Kết quả tích hợp thực tế do Lead xác minh:
 - Chống ghi trùng Alert Record PASS.
 - Demo console PASS.
 - Export và đọc lại CSV/JSON PASS.
+- `py_compile` và `git diff --check` PASS.
 
 ## 10. Hướng dẫn cài đặt và chạy chương trình
 
@@ -65,5 +67,5 @@ Sau khi chạy, kiểm tra console, `output/alert_logs.csv` và `output/report.j
 
 ## 11. Kết luận
 
-MVP đã hoàn thành đầy đủ các module theo ownership và vượt mức tối thiểu 23 test với 59/59 test PASS. Kiến trúc giữ đúng nguyên tắc phân chia trách nhiệm, dữ liệu mô phỏng có thể tái lập và lỗi thiết bị được tách khỏi cảnh báo môi trường. Pull Request và quyết định merge cuối cùng thuộc quyền nghiệm thu của trưởng nhóm.
+MVP đã hoàn thành đầy đủ các module theo ownership và vượt mức tối thiểu 23 test với 64/64 test PASS. Kiến trúc giữ đúng nguyên tắc phân chia trách nhiệm, dữ liệu mô phỏng có thể tái lập và lỗi thiết bị được tách khỏi cảnh báo môi trường. Pull Request và quyết định merge cuối cùng thuộc quyền nghiệm thu của trưởng nhóm.
 

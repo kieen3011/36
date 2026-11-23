@@ -48,10 +48,10 @@ python -m unittest discover -s tests -v
 
 Bằng chứng tích hợp gần nhất:
 
-- **59/59 test PASS**.
+- **64/64 test PASS**, trong đó có 9 integration tests.
 - Unit, integration và end-to-end đều PASS.
-- Demo console PASS.
-- CSV và JSON được tạo và đọc lại thành công.
+- `py_compile` và `git diff --check` PASS.
+- Demo console PASS; CSV và JSON được tạo và đọc lại thành công.
 
 ## Cấu trúc chính
 
