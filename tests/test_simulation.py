@@ -9,6 +9,31 @@ from tests.fixtures import BASE_TIMESTAMP, STEP_ONE_TIMESTAMP, copy_sensor_profi
 
 
 class SimulationEngineTests(unittest.TestCase):
+    def test_sha256_seed_matches_approved_golden_vector(self):
+        engine = SimulationEngine("2312345", copy_sensor_profiles())
+
+        first_event = engine.generate_events(0, BASE_TIMESTAMP)[0]
+
+        self.assertEqual(
+            first_event,
+            {
+                "kind": "READING",
+                "sensor_id": "COLD-01",
+                "timestamp": "2026-11-23T00:00:00+07:00",
+                "temperature": 4.87,
+                "humidity": 90.17,
+            },
+        )
+
+    def test_different_mssv_produce_different_sequences(self):
+        first = SimulationEngine("2312345", copy_sensor_profiles())
+        second = SimulationEngine("2312346", copy_sensor_profiles())
+
+        first_events = first.generate_events(0, BASE_TIMESTAMP)
+        second_events = second.generate_events(0, BASE_TIMESTAMP)
+
+        self.assertNotEqual(first_events, second_events)
+
     def test_same_mssv_and_profiles_produce_same_events(self):
         profiles = copy_sensor_profiles()
         first = SimulationEngine("2312345", profiles)
