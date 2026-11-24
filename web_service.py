@@ -9,7 +9,7 @@ from alerts import AlertSystem
 from config import SENSOR_PROFILES, START_TIME, STEP_MINUTES, THRESHOLDS
 from main import _build_manager, _handle_event, _make_error
 from simulation import SimulationEngine
-from statistics import CSV_FIELDS, StatisticsTracker
+from statistics import CSV_FIELDS, StatisticsTracker, _spreadsheet_safe
 
 
 def _collect_error(event, manager):
@@ -44,7 +44,9 @@ def _build_csv(alerts):
     for alert in alerts:
         row = deepcopy(alert)
         row["violated_metrics"] = ";".join(row["violated_metrics"])
-        writer.writerow(row)
+        writer.writerow(
+            {key: _spreadsheet_safe(value) for key, value in row.items()}
+        )
     return stream.getvalue()
 
 

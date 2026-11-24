@@ -4,10 +4,26 @@ import csv
 import io
 import unittest
 
-from web_service import simulate_session
+from web_service import _build_csv, simulate_session
 
 
 class WebServiceTests(unittest.TestCase):
+    def test_csv_download_neutralizes_spreadsheet_formula_prefixes(self):
+        alert = {
+            "sensor_id": "=2+3",
+            "location_id": "+A",
+            "timestamp": "2026-11-23T00:00:00+07:00",
+            "severity": "WARNING",
+            "violated_metrics": ["temperature"],
+            "temperature": 8.1,
+            "humidity": 90.0,
+        }
+
+        row = next(csv.DictReader(io.StringIO(_build_csv([alert]))))
+
+        self.assertEqual("'=2+3", row["sensor_id"])
+        self.assertEqual("'+A", row["location_id"])
+
     def test_session_is_deterministic_and_has_complete_schema(self):
         first = simulate_session("2312345", 3)
         second = simulate_session("2312345", 3)

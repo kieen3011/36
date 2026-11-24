@@ -29,7 +29,7 @@ python main.py --mssv 2312345 --steps 10 --output-dir output
 
 | Gate | Kết quả thực tế |
 |---|---|
-| Python unittest | 72/72 PASS: 64 test baseline + 8 test adapter/API |
+| Python unittest | 85/85 PASS: 76 test core đã remediation + 9 test adapter/API |
 | Frontend Vitest | 8/8 PASS trên 3 test files |
 | Vite production build | PASS, 18 modules transformed |
 | FastAPI phục vụ production bundle | PASS qua TestClient |
@@ -40,6 +40,6 @@ python main.py --mssv 2312345 --steps 10 --output-dir output
 | Dependency audit | `npm audit`: 0 vulnerability |
 | Secret pattern scan | Không phát hiện token/private key theo các pattern đã kiểm tra |
 
-Review độc lập đã kiểm tra kiến trúc/Vercel, security/performance và UI/testing/accessibility. Các finding Medium về giới hạn MSSV, thống kê theo vị trí, reading cũ trên biểu đồ và reset race đã được bổ sung regression test rồi sửa. Còn một ghi chú Low: adapter hiện suy ra Error Record cho response và core đồng thời ghi error vào `StatisticsTracker`; hai kết quả đã được test đồng nhất nhưng có thể gom về một nguồn ở refactor contract-compatible sau này.
+Review độc lập đã kiểm tra kiến trúc/Vercel, security/performance, UI/testing/accessibility và remediation audit core. SEC-001, TEST-01, TEST-02 cùng các finding Medium về giới hạn MSSV, thống kê theo vị trí, reading cũ trên biểu đồ và reset race đã được bổ sung regression test rồi sửa. Còn một ghi chú Low: adapter hiện suy ra Error Record cho response và core đồng thời ghi error vào `StatisticsTracker`; hai kết quả đã được test đồng nhất nhưng có thể gom về một nguồn ở refactor contract-compatible sau này.
 
 Không dùng báo cáo này để tuyên bố Vercel đã deploy; deployment production không thuộc phạm vi branch này và chưa có URL để kiểm tra.
