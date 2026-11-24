@@ -4,8 +4,9 @@ Dự án Python OOP mô phỏng hệ thống giám sát nhiệt độ và độ 
 
 ## Yêu cầu môi trường
 
-- Python 3.11 trở lên.
-- Chỉ sử dụng Python Standard Library, không cần cài dependency bên ngoài.
+- Python 3.12–3.14 (khuyến nghị Python 3.13 cho web demo).
+- Node.js 20 trở lên và npm.
+- CLI core chỉ dùng Python Standard Library; web API dùng FastAPI.
 
 ## Kiến trúc
 
@@ -32,6 +33,17 @@ Console Display + CSV/JSON
 - `main.py`: xử lý time-step và kết nối các module.
 - `config.py`: cấu hình ngưỡng, profile và Sensor mặc định.
 
+Web demo bổ sung một lớp adapter, không viết lại thuật toán mô phỏng:
+
+```text
+React/Vite → POST /api/simulate → FastAPI → web_service.py → Python OOP Core
+```
+
+- `app.py`: endpoint FastAPI, validation và phục vụ bundle frontend.
+- `web_service.py`: chạy core hoàn toàn trong bộ nhớ, tạo payload và nội dung tải xuống của đúng phiên.
+- `src/`: dashboard React, biểu đồ SVG, trạng thái loading/error/empty và tải CSV/JSON.
+- `vercel.json`, `pyproject.toml`: cấu hình build và Python entrypoint cho Vercel.
+
 ## Chạy chương trình
 
 ```powershell
@@ -43,15 +55,48 @@ Kết quả gồm snapshot và tổng kết trên console, `output/alert_logs.cs
 ## Chạy kiểm thử
 
 ```powershell
+python -m pip install -r requirements-dev.txt
 python -m unittest discover -s tests -v
+npm install
+npm test
+npm run build
 ```
 
-Bằng chứng tích hợp gần nhất:
+Xem bằng chứng mới nhất tại `docs/web/WEB_TEST_REPORT.md`.
 
-- **64/64 test PASS**, trong đó có 9 integration tests.
-- Unit, integration và end-to-end đều PASS.
-- `py_compile` và `git diff --check` PASS.
-- Demo console PASS; CSV và JSON được tạo và đọc lại thành công.
+## Chạy web demo cục bộ
+
+Mở hai terminal tại thư mục dự án:
+
+```powershell
+# Terminal 1
+python -m uvicorn app:app --reload --port 8000
+
+# Terminal 2
+npm run dev
+```
+
+Truy cập `http://localhost:5173`. Vite chuyển tiếp `/api` sang FastAPI. Health check nằm tại `http://localhost:8000/api/health`.
+
+Để thử bản gần với production, chạy `npm run build`, sau đó khởi động Uvicorn và truy cập `http://localhost:8000`; FastAPI sẽ phục vụ thư mục `dist`.
+
+## API web
+
+- `GET /api/health`: trạng thái sẵn sàng của API.
+- `POST /api/simulate`: nhận JSON `{ "mssv": "2312345", "steps": 10 }`.
+- `steps` phải là số nguyên từ 1 đến 200; `mssv` không được rỗng.
+- Kết quả gồm metadata phiên, snapshot cảm biến, timeline, alerts, errors, summary và dữ liệu CSV/JSON để tải xuống.
+
+## Triển khai Vercel
+
+Import repository vào Vercel, chọn branch `feature/web-demo` và giữ Build Command là `npm run build`. Vercel sử dụng `app:app` trong `pyproject.toml`; không cần biến môi trường hoặc persistent storage. Chi tiết và checklist xác minh nằm tại `docs/web/VERCEL_DEPLOYMENT.md`.
+
+Giới hạn của demo:
+
+- Không có database hoặc authentication.
+- Không lưu session trên server; mọi kết quả được tạo trong bộ nhớ theo từng request.
+- Dữ liệu là mô phỏng deterministic phục vụ học tập, không phải dữ liệu IoT thật.
+- Chưa thể coi là đã deploy cho đến khi có URL Vercel và health/API/UI được kiểm tra trên URL đó.
 
 ## Cấu trúc chính
 
@@ -65,6 +110,9 @@ Bằng chứng tích hợp gần nhất:
 ├── alerts.py
 ├── statistics.py
 ├── display.py
+├── app.py
+├── web_service.py
+├── src/
 ├── tests/
 ├── docs/
 └── output/

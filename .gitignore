@@ -14,4 +14,8 @@ output/*.json
 *.docx
 ~$*.docx
 .worktrees/
+node_modules/
+dist/
+.vercel/
+*.log
 
