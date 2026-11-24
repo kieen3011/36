@@ -18,4 +18,3 @@ render_summary(summary: dict) -> None
 ## Giới hạn
 
 Giao diện sử dụng `print()` của thư viện chuẩn. Module không phụ thuộc `rich`, `matplotlib` hoặc thư viện bên ngoài.
-

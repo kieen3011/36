@@ -160,5 +160,3 @@ class AlertSystem:
             if above or equal_exclusive:
                 return value - maximum
         return None
-
-

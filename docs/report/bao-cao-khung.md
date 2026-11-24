@@ -68,4 +68,3 @@ Sau khi chạy, kiểm tra console, `output/alert_logs.csv` và `output/report.j
 ## 11. Kết luận
 
 MVP đã hoàn thành đầy đủ các module theo ownership và vượt mức tối thiểu 23 test với 64/64 test PASS. Kiến trúc giữ đúng nguyên tắc phân chia trách nhiệm, dữ liệu mô phỏng có thể tái lập và lỗi thiết bị được tách khỏi cảnh báo môi trường. Pull Request và quyết định merge cuối cùng thuộc quyền nghiệm thu của trưởng nhóm.
-

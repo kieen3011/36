@@ -1,6 +1,6 @@
 # G0 — Decision Log cho Integration Contract MVP
 
-**Trạng thái:** PROPOSED — chờ trưởng nhóm phê duyệt  
+**Trạng thái:** APPROVED / LOCKED — đã được trưởng nhóm phê duyệt trong phiên triển khai
 **Baseline:** MASTER HANDOFF V1.0  
 **Phạm vi:** Chỉ khóa các chi tiết liên module còn thiếu; không thay đổi API đã được Master phê duyệt.
 
@@ -173,6 +173,8 @@
 - Có đúng 5 field.
 - `error_type` thuộc `DISCONNECT`, `INVALID_DATA`, `PROCESSING_ERROR`, `UNKNOWN_SENSOR`.
 - `message` là chuỗi không rỗng; `details` là dictionary.
+- Cây `details` chỉ chứa `null`, `bool`, chuỗi, `int`, `float` hữu hạn, `list` và `dict`; mọi key của `dict` phải là chuỗi.
+- Tuple, set, object tùy ý, NaN, Infinity và cyclic reference bị từ chối trước khi record được lưu.
 - Error không dùng khóa chống trùng của environmental alert.
 
 ### 6.2. Summary schema
@@ -197,7 +199,10 @@
 - CSV encoding `utf-8`, `newline=""`.
 - CSV header cố định: `sensor_id,location_id,timestamp,severity,violated_metrics,temperature,humidity`.
 - `violated_metrics` trong CSV nối bằng dấu `;`.
+- Chuỗi CSV bắt đầu bằng `=`, `+`, `-`, `@`, tab hoặc carriage return được prefix dấu nháy đơn để spreadsheet không thực thi công thức; schema và giá trị nghiệp vụ còn lại không đổi.
 - JSON encoding UTF-8, `ensure_ascii=False`, indent 2.
+- JSON dùng `allow_nan=False` và được ghi vào temporary file cùng thư mục, `flush`, `fsync`, rồi `os.replace()` atomic.
+- Validation, serialization hoặc ghi temporary file thất bại phải giữ nguyên target cũ và dọn temporary file khi có thể.
 - JSON schema:
 
 ```python
@@ -229,7 +234,7 @@
 
 - CLI: `python main.py --mssv <MSSV> [--steps 10] [--output-dir output]`.
 - `--mssv` bắt buộc, chuỗi không rỗng.
-- `--steps` mặc định 10, phải là số nguyên dương.
+- `--steps` mặc định 10, phải là số nguyên trong khoảng 1–200.
 - Thời điểm bắt đầu cố định: `2026-11-23T00:00:00+07:00`.
 - Khoảng cách step: 1 phút.
 - Timestamp step `n` bằng start time cộng `n` phút.
@@ -318,4 +323,3 @@ Phê duyệt G0 đồng nghĩa chấp nhận toàn bộ các mục 1–12 như p
 4. Shared fixtures do Lead chuẩn bị từ G0 trước khi worker viết production code và được phân phối nguyên trạng cho các worktree.
 5. Tối đa ba worker hoạt động đồng thời vì Lead chiếm một trong bốn slot.
 6. Không merge feature branch vào `main`; PR chỉ được tạo để trưởng nhóm nghiệm thu.
-

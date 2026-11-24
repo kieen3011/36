@@ -62,4 +62,3 @@ for event in events:
         # Orchestrator chuyen du lieu hop le cho Sensor.
         pass
 ```
-
