@@ -165,11 +165,16 @@ class IntegrationTests(unittest.TestCase):
     def test_cli_parser_rejects_invalid_steps(self):
         parser = build_parser()
 
-        for value in ("0", "abc"):
+        for value in ("0", "201", "abc"):
             with self.subTest(value=value):
                 with redirect_stderr(io.StringIO()):
                     with self.assertRaises(SystemExit):
                         parser.parse_args(["--mssv", "2312345", "--steps", value])
+
+    def test_run_simulation_rejects_steps_above_serverless_limit(self):
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            with self.assertRaisesRegex(ValueError, "must not exceed 200"):
+                run_simulation("2312345", 201, temporary_directory, render=False)
 
     def test_cli_parser_applies_defaults_and_accepts_overrides(self):
         parser = build_parser()

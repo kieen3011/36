@@ -5,6 +5,7 @@ import unittest
 from copy import deepcopy
 
 import alerts
+from config import THRESHOLDS as PRODUCTION_THRESHOLDS
 from tests.fixtures import BASE_TIMESTAMP, copy_thresholds, make_reading
 
 
@@ -85,6 +86,50 @@ class AlertSystemTests(unittest.TestCase):
         alert = self.alert_system.evaluate(reading)
 
         self.assertEqual("CRITICAL", alert["severity"])
+
+    def test_humidity_only_boundary_changes_warning_to_critical(self):
+        warning = self.alert_system.evaluate(
+            make_reading(temperature=5.0, humidity=75.1)
+        )
+        critical = self.alert_system.evaluate(
+            make_reading(temperature=5.0, humidity=75.0)
+        )
+
+        self.assertEqual("WARNING", warning["severity"])
+        self.assertEqual(["humidity"], warning["violated_metrics"])
+        self.assertEqual("CRITICAL", critical["severity"])
+        self.assertEqual(["humidity"], critical["violated_metrics"])
+
+    def test_location_b_and_c_threshold_boundaries_match_g0(self):
+        cases = (
+            ("B lower temperature", make_reading(location_id="B", temperature=18.0, humidity=50.0), None),
+            ("B below lower temperature", make_reading(location_id="B", temperature=17.9, humidity=50.0), "WARNING"),
+            ("B critical lower temperature", make_reading(location_id="B", temperature=15.0, humidity=50.0), "CRITICAL"),
+            ("B upper temperature", make_reading(location_id="B", temperature=25.0, humidity=50.0), None),
+            ("B below humidity max", make_reading(location_id="B", temperature=22.0, humidity=59.9), None),
+            ("B exclusive humidity", make_reading(location_id="B", temperature=22.0, humidity=60.0), "WARNING"),
+            ("B above humidity max", make_reading(location_id="B", temperature=22.0, humidity=60.1), "WARNING"),
+            ("B critical humidity", make_reading(location_id="B", temperature=22.0, humidity=70.0), "CRITICAL"),
+            ("C below temperature max", make_reading(location_id="C", temperature=29.9, humidity=50.0), None),
+            ("C exclusive temperature", make_reading(location_id="C", temperature=30.0, humidity=50.0), "WARNING"),
+            ("C above temperature max", make_reading(location_id="C", temperature=30.1, humidity=50.0), "WARNING"),
+            ("C critical temperature", make_reading(location_id="C", temperature=33.0, humidity=50.0), "CRITICAL"),
+            ("C lower humidity", make_reading(location_id="C", temperature=25.0, humidity=40.0), None),
+            ("C upper humidity", make_reading(location_id="C", temperature=25.0, humidity=60.0), None),
+            ("C low humidity warning", make_reading(location_id="C", temperature=25.0, humidity=39.9), "WARNING"),
+            ("C high humidity warning", make_reading(location_id="C", temperature=25.0, humidity=60.1), "WARNING"),
+            ("C low humidity critical", make_reading(location_id="C", temperature=25.0, humidity=30.0), "CRITICAL"),
+            ("C high humidity critical", make_reading(location_id="C", temperature=25.0, humidity=70.0), "CRITICAL"),
+        )
+
+        for name, reading, expected_severity in cases:
+            with self.subTest(name=name):
+                alert = self.alert_system.evaluate(reading)
+                actual_severity = None if alert is None else alert["severity"]
+                self.assertEqual(expected_severity, actual_severity)
+
+    def test_production_thresholds_equal_locked_g0_fixture(self):
+        self.assertEqual(copy_thresholds(), PRODUCTION_THRESHOLDS)
 
     def test_exclusive_server_temperature_boundary_is_warning(self):
         """Bat loi neu 30 do tai phong may chu khong tao warning."""

@@ -20,6 +20,9 @@ from simulation import SimulationEngine
 from statistics import StatisticsTracker
 
 
+MAX_STEPS = 200
+
+
 SENSOR_CLASSES = {
     "COLD_STORAGE": ColdStorageSensor,
     "DRY_STORAGE": DryStorageSensor,
@@ -124,6 +127,8 @@ def run_simulation(
         raise TypeError("steps must be an integer")
     if steps <= 0:
         raise ValueError("steps must be greater than zero")
+    if steps > MAX_STEPS:
+        raise ValueError(f"steps must not exceed {MAX_STEPS}")
     if not isinstance(render, bool):
         raise TypeError("render must be a boolean")
 
@@ -164,6 +169,8 @@ def _positive_integer(value):
         raise argparse.ArgumentTypeError("steps phai la so nguyen") from error
     if parsed <= 0:
         raise argparse.ArgumentTypeError("steps phai lon hon 0")
+    if parsed > MAX_STEPS:
+        raise argparse.ArgumentTypeError(f"steps khong duoc vuot qua {MAX_STEPS}")
     return parsed
 
 

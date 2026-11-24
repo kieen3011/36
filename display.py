@@ -64,4 +64,3 @@ def render_summary(summary: dict) -> None:
     else:
         for error_type, count in summary["errors_by_type"].items():
             print(f"{error_type}: {count}")
-

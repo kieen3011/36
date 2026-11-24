@@ -5,9 +5,11 @@ from __future__ import annotations
 import csv
 import json
 import math
+import os
 from copy import deepcopy
 from datetime import datetime
 from pathlib import Path
+import tempfile
 
 
 ALERT_FIELDS = {
@@ -85,6 +87,42 @@ def _validate_path(file_path):
     return Path(file_path)
 
 
+def _validate_json_safe(value, path="details", ancestors=None):
+    """Kiem tra cay du lieu chi chua gia tri JSON an toan va khong co chu ky."""
+    if value is None or type(value) in (bool, str, int):
+        return
+    if type(value) is float:
+        if not math.isfinite(value):
+            raise ValueError(f"{path} must contain only finite numbers")
+        return
+    if type(value) not in (list, dict):
+        raise TypeError(f"{path} must contain only JSON-safe values")
+
+    active = set() if ancestors is None else ancestors
+    identity = id(value)
+    if identity in active:
+        raise ValueError(f"{path} must not contain cyclic references")
+    active.add(identity)
+    try:
+        if type(value) is list:
+            for index, item in enumerate(value):
+                _validate_json_safe(item, f"{path}[{index}]", active)
+            return
+        for key, item in value.items():
+            if type(key) is not str:
+                raise TypeError(f"{path} keys must be strings")
+            _validate_json_safe(item, f"{path}.{key}", active)
+    finally:
+        active.remove(identity)
+
+
+def _spreadsheet_safe(value):
+    """Vo hieu hoa prefix cong thuc khi mo CSV bang spreadsheet."""
+    if isinstance(value, str) and value.startswith(("=", "+", "-", "@", "\t", "\r")):
+        return "'" + value
+    return value
+
+
 class StatisticsTracker:
     """Luu lich su va tong hop canh bao cung loi he thong."""
 
@@ -144,7 +182,9 @@ class StatisticsTracker:
             for alert in self._alerts:
                 row = deepcopy(alert)
                 row["violated_metrics"] = ";".join(row["violated_metrics"])
-                writer.writerow(row)
+                writer.writerow(
+                    {key: _spreadsheet_safe(value) for key, value in row.items()}
+                )
 
     def export_json(self, file_path: str) -> None:
         """Xuat thong tin phien, tong hop, canh bao va loi sang JSON."""
@@ -163,8 +203,34 @@ class StatisticsTracker:
             "alerts": deepcopy(self._alerts),
             "errors": deepcopy(self._errors),
         }
-        with target.open("w", encoding="utf-8") as file:
-            json.dump(report, file, ensure_ascii=False, indent=2)
+        serialized = json.dumps(
+            report,
+            ensure_ascii=False,
+            indent=2,
+            allow_nan=False,
+        )
+        temporary_path = None
+        try:
+            with tempfile.NamedTemporaryFile(
+                mode="w",
+                encoding="utf-8",
+                dir=target.parent,
+                prefix=f".{target.name}.",
+                suffix=".tmp",
+                delete=False,
+            ) as temporary_file:
+                temporary_path = Path(temporary_file.name)
+                temporary_file.write(serialized)
+                temporary_file.flush()
+                os.fsync(temporary_file.fileno())
+            os.replace(temporary_path, target)
+        except Exception:
+            if temporary_path is not None:
+                try:
+                    temporary_path.unlink(missing_ok=True)
+                except OSError:
+                    pass
+            raise
 
     @staticmethod
     def _validate_alert(alert):
@@ -215,3 +281,4 @@ class StatisticsTracker:
             raise ValueError("message must not be blank")
         if not isinstance(error["details"], dict):
             raise TypeError("details must be a dictionary")
+        _validate_json_safe(error["details"])

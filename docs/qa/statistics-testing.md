@@ -42,4 +42,3 @@ python -m unittest tests.test_statistics -v
 ```
 
 Bộ test kiểm tra ghi mới, chống trùng, đếm theo location/severity, validation, lỗi không chống trùng, deep copy summary, thứ tự location và round-trip CSV/JSON.
-
