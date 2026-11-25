@@ -197,7 +197,7 @@ class DataSimulator:
 
 
 if __name__ == "__main__":
-    sim = DataSimulator(mssv="21520001")  # Thay MSSV của bạn
+    sim = DataSimulator(mssv="079207050455")  
 
     print("--- 1. TỰ THÍCH NGHI VỚI KHU VỰC MỚI CHƯA TỪNG KHAI BÁO ---")
     for i in range(1, 5):
